@@ -1,5 +1,5 @@
 {
-  "name": "websocket-server",
+  "name": "ws-server-client",
   "version": "0.1.0",
   "description": "An easy-to-use WebSocket server to make channels and events easier.",
   "main": "index.js",

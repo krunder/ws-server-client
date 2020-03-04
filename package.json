@@ -1,6 +1,6 @@
 {
   "name": "ws-server-client",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "An easy-to-use WebSocket server to make channels and events easier.",
   "main": "index.js",
   "directories": {
@@ -30,6 +30,7 @@
   "homepage": "https://github.com/krunder/ws-server#readme",
   "dependencies": {
     "camelcase": "^5.3.1",
+    "graceful-fs": "^4.2.3",
     "uuid": "^7.0.1",
     "ws": "^7.2.1"
   }

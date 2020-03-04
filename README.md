@@ -39,9 +39,32 @@ class ExampleEvent extends Event {
 module.exports = ExampleEvent;
 ```
 
-### Successful response
-All successful events use the following convention when sending a message back to the client.
+Sending payload to all clients connected except the one sending the event
+```js
+return (new Response({...})).toOthers()
 ```
+
+Sending payload to all clients connected
+```js
+return (new Response({...})).toAll()
+```
+
+### Sending an event
+All events **must** be sent in the following JSON structure
+
+**Event:** String, required \
+**Data:** Object, optional
+
+```json
+{
+  "event": "ExampleEvent",
+  "data": {...}
+}
+```
+
+### Successful response
+All successful events will send the following payload structure back to the client.
+```json
 {
   "status": "ok",
   "data": {...}
@@ -49,23 +72,14 @@ All successful events use the following convention when sending a message back t
 ```
 
 ### Error response
-All failed events use the following convention when sending a message back to the client.
-```
+All failed events will send the following payload structure back to the client.
+```json
 {
   "status": "error",
   "data": {...},
   "errorType": "error-description"
 }
 ```
-
-## API
-### Response
-##### toClient()
-Tells the response to send the payload to the client sending the event. No other clients connected to the server will receive the message.
-##### toOthers()
-Tells the response to send the payload to all clients connected to the server except the one sending the event.
-##### toAll()
-Tells the response to send the payload to all clients connected to the server.
 
 ## Configuration
 Name | Type | Default | Description

@@ -11,14 +11,12 @@ npm install ws-server-client
 ````
 
 ## Getting Started
-```js
-const { Server } = require('ws-server-client');
-
-const server = new Server({ port: 21001 });
-server.start();
+Add the following to your package.json
+```json
+"scripts": {
+  "start": "node ./node_modules/ws-server-client/server.js"
+},
 ```
-
-**NOTE:** All available configuration properties below outlining their type and default value.
 
 ## Examples
 ### Creating an event
@@ -52,7 +50,7 @@ return (new Response({...})).toAll()
 ### Sending an event
 All events **must** be sent in the following JSON structure
 
-**Event:** String, required \
+**Event:** String, required, camelCase \
 **Data:** Object, optional
 
 ```json
@@ -82,10 +80,18 @@ All failed events will send the following payload structure back to the client.
 ```
 
 ## Configuration
+A config file under `config/server.js` at the root of your project is supported. You can find the structure of the file below with one example configuration option in it.
+```js
+module.exports = {
+  port: 7000,
+};
+```
+
+Here are a full list of all supported configuration options.
+
 Name | Type | Default | Description
 :---: | :---: | :---: | :---:
-port | Number | 6000 | The port which the server listens to connections from.
-events | Object | {} | The events the server should handle. If none specified, it will automatically look for events in your `/events` directory
+port | Number | 21000 | The port which the server listens to connections from.
 
 ## License
 [MIT](LICENSE)

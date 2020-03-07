@@ -1,6 +1,6 @@
 {
   "name": "ws-server-client",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "An easy-to-use WebSocket server to make channels and events easier.",
   "main": "index.js",
   "directories": {

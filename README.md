@@ -80,7 +80,7 @@ All failed events will send the following payload structure back to the client.
 ```
 
 ## Configuration
-A config file under `config/server.js` at the root of your project is supported. You can find the structure of the file below with one example configuration option in it.
+Create this configuration file `config/server.js` within your project using the following structure to override any of the values.
 ```js
 module.exports = {
   port: 7000,

@@ -20,17 +20,16 @@ Add the following to your package.json
 
 ## Events
 ### Initial setup
-All event classes must implement the `process()` method which requires an instance of the `Response` class to be returned.
+Create your event classes in an `events` directory at the root of your project and the server will automatically import these to prevent you having to do it manually.
 
-Creating your event classes in an `events` directory at the root of your project will mean the server can automatically import these to prevent you having to do this manually.
+You must implement the `process()` method for handling the event and sending messages to clients. \
+You must implement the `channel()` method to specify which channel the client must be subscribed to when sending the event.
 ```js
-const { Event, Response } = require('ws-server-client');
+const { Event } = require('ws-server-client');
 
 class ExampleEvent extends Event {
   process() {
-    return (new Response({
-      example: 'This is an example test.',
-    })).toClient();
+    this.messageToClient({ example: 'This is an example test.' });
   };
 
   channel() {
@@ -43,12 +42,19 @@ module.exports = ExampleEvent;
 
 Sending payload to all clients connected except the one sending the event
 ```js
-return (new Response({...})).toOthers()
+this.messageToOthers({...})
 ```
 
 Sending payload to all clients connected
 ```js
-return (new Response({...})).toAll()
+this.messageToAll({...})
+```
+
+The message methods can also be chained together for ease-of-use when sending multiple messages on one event request
+```js
+this.messageToClient({...})
+  .messageToClient({...})
+  .messageToAll({...});
 ```
 
 ### Send to server
@@ -68,8 +74,7 @@ All events **must** be sent in the following JSON structure
 
 ## Channels
 ### Initial setup
-Creating your channel classes in a `channels` directory at the root of your project will mean the server can automatically import these to prevent you having to do this manually.
-
+Create your channel classes in an `channels` directory at the root of your project and the server will automatically import these to prevent you having to do it manually.
 ```js
 const { Channel } = require('ws-server-client');
 

@@ -18,11 +18,11 @@ Add the following to your package.json
 },
 ```
 
-## Examples
-### Creating an event
+## Events
+### Initial setup
 All event classes must implement the `process()` method which requires an instance of the `Response` class to be returned.
 
-Creating your event classes in an `events` directory at the root of your project will mean the server can automatically import these to prevent you having to spend time doing this manually.
+Creating your event classes in an `events` directory at the root of your project will mean the server can automatically import these to prevent you having to do this manually.
 ```js
 const { Event, Response } = require('ws-server-client');
 
@@ -31,6 +31,10 @@ class ExampleEvent extends Event {
     return (new Response({
       example: 'This is an example test.',
     })).toClient();
+  };
+
+  channel() {
+    return 'ExampleChannel';
   };
 };
 
@@ -47,20 +51,71 @@ Sending payload to all clients connected
 return (new Response({...})).toAll()
 ```
 
-### Sending an event
+### Send to server
 All events **must** be sent in the following JSON structure
 
-**Event:** String, required, camelCase \
+**Type:** String, required, equals `event` \
+**Name:** String, required, camelCase \
 **Data:** Object, optional
 
 ```json
 {
-  "event": "ExampleEvent",
+  "type": "event",
+  "name": "ExampleEvent",
   "data": {...}
 }
 ```
 
-### Successful response
+## Channels
+### Initial setup
+Creating your channel classes in a `channels` directory at the root of your project will mean the server can automatically import these to prevent you having to do this manually.
+
+```js
+const { Channel } = require('ws-server-client');
+
+class ExampleChannel extends Channel {};
+
+module.exports = ExampleChannel;
+```
+
+### Subscribe
+All channel subscriptions **must** be sent in the following JSON structure
+
+**Type:** String, required, equals `channel` \
+**Name:** String, required, camelCase \
+**Data:** Object
+
+```json
+{
+  "type": "channel",
+  "name": "ExampleChannel",
+  "data": {
+    "mode": "subscribe",
+    ...
+  }
+}
+```
+
+### Unsubscribe
+All channel unsubscriptions **must** be sent in the following JSON structure
+
+**Type:** String, required, equals `channel` \
+**Name:** String, required, camelCase \
+**Data:** Object
+
+```json
+{
+  "type": "channel",
+  "name": "ExampleChannel",
+  "data": {
+    "mode": "unsubscribe",
+    ...
+  }
+}
+```
+
+## JSON Responses
+### Success
 All successful events will send the following payload structure back to the client.
 ```json
 {
@@ -69,7 +124,7 @@ All successful events will send the following payload structure back to the clie
 }
 ```
 
-### Error response
+### Error
 All failed events will send the following payload structure back to the client.
 ```json
 {

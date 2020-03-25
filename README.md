@@ -18,18 +18,23 @@ Add the following to your package.json
 },
 ```
 
+Create a .env file in the root directory of your project
+```text
+PORT=21000
+```
+
 ## Events
 ### Initial setup
 Create your event classes in an `events` directory at the root of your project and the server will automatically import these to prevent you having to do it manually.
 
-You must implement the `process()` method for handling the event and sending messages to clients. \
+You must implement the `process()` method for handling the event and sending messages to clients. This method must return a response instance. \
 You must implement the `channel()` method to specify which channel the client must be subscribed to when sending the event.
 ```js
 const { Event } = require('ws-server-client');
 
 class ExampleEvent extends Event {
   process() {
-    this.messageToClient({ example: 'This is an example test.' });
+    return this.response.toClient({ example: 'This is an example test.' });
   };
 
   channel() {
@@ -42,19 +47,18 @@ module.exports = ExampleEvent;
 
 Sending payload to all clients connected except the one sending the event
 ```js
-this.messageToOthers({...})
+this.response.toOthers({...})
 ```
 
 Sending payload to all clients connected
 ```js
-this.messageToAll({...})
+this.response.toAll({...})
 ```
 
 The message methods can also be chained together for ease-of-use when sending multiple messages on one event request
 ```js
-this.messageToClient({...})
-  .messageToClient({...})
-  .messageToAll({...});
+this.response.toClient({...})
+  .toOthers({...})
 ```
 
 ### Send to server
@@ -140,18 +144,11 @@ All failed events will send the following payload structure back to the client.
 ```
 
 ## Configuration
-Create this configuration file `config/server.js` within your project using the following structure to override any of the values.
-```js
-module.exports = {
-  port: 7000,
-};
-```
-
 Here are a full list of all supported configuration options.
 
-Name | Type | Default | Description
-:---: | :---: | :---: | :---:
-port | Number | 21000 | The port which the server listens to connections from.
+Name | .env Name | Type | Default | Description
+:---: | :---: | :---: | :---: | :---:
+port | PORT | Number | 21000 | The port which the server listens to connections from.
 
 ## License
 [MIT](LICENSE)

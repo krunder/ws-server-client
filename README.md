@@ -20,8 +20,17 @@ Add the following to your package.json
 
 Create a .env file in the root directory of your project
 ```text
-PORT=21000
+APP_PORT=21000
+APP_ENV=local
+
+STORAGE_DRIVER=redis
+
+REDIS_HOST=127.0.0.1
+REDIS_PORT=6379
+REDIS_PASSWORD=
+REDIS_UNIX_PATH=
 ```
+**NOTE**: Currently redis is the only storage driver supported. Further support will be added in the future.
 
 ## Events
 ### Initial setup
@@ -59,6 +68,14 @@ The message methods can also be chained together for ease-of-use when sending mu
 ```js
 this.response.toClient({...})
   .toOthers({...})
+```
+
+The storage instance can be used to set and get values through your selected storage driver (Only redis is currently supported)
+```js
+this.storage.set('example-key', 'example-value').then(...).catch(...);
+```
+```js
+this.storage.get('example-key').then((value) => ...).catch(...);
 ```
 
 ### Send to server

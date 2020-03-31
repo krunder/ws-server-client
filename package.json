@@ -25,9 +25,9 @@
   "author": "Kyle Underwood <krunder1997@gmail.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/krunder/ws-server/issues"
+    "url": "https://github.com/krunder/ws-server-client/issues"
   },
-  "homepage": "https://github.com/krunder/ws-server#readme",
+  "homepage": "https://github.com/krunder/ws-server-client#readme",
   "dependencies": {
     "camelcase": "^5.3.1",
     "cross-env": "^7.0.2",

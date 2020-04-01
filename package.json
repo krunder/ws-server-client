@@ -1,6 +1,6 @@
 {
   "name": "ws-server-client",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "An easy-to-use WebSocket server to make channels and events easier.",
   "main": "index.js",
   "directories": {
@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/krunder/ws-server.git"
+    "url": "git+https://github.com/krunder/ws-server-client.git"
   },
   "keywords": [
     "websockets",
@@ -25,13 +25,15 @@
   "author": "Kyle Underwood <krunder1997@gmail.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/krunder/ws-server/issues"
+    "url": "https://github.com/krunder/ws-server-client/issues"
   },
-  "homepage": "https://github.com/krunder/ws-server#readme",
+  "homepage": "https://github.com/krunder/ws-server-client#readme",
   "dependencies": {
     "camelcase": "^5.3.1",
     "cross-env": "^7.0.2",
+    "dotenv": "^8.2.0",
     "graceful-fs": "^4.2.3",
+    "redis": "^3.0.2",
     "uuid": "^7.0.1",
     "ws": "^7.2.1"
   }

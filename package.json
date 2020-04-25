@@ -29,8 +29,11 @@
   },
   "homepage": "https://github.com/krunder/ws-server-client#readme",
   "dependencies": {
+    "axios": "^0.19.2",
     "camelcase": "^5.3.1",
     "cross-env": "^7.0.2",
+    "deepmerge": "^4.2.2",
+    "dot-prop": "^5.2.0",
     "dotenv": "^8.2.0",
     "graceful-fs": "^4.2.3",
     "redis": "^3.0.2",

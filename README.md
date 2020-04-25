@@ -167,6 +167,8 @@ Name | .env Name | Type | Default | Description
 :---: | :---: | :---: | :---: | :---:
 app.port | APP_PORT | Number | 21000 | The port which the server listens to connections from.
 app.environment | APP_ENV | Number | local | The environment the application is currently running on.
+auth.endpoints.user.url | | String | null | The endpoint to retrieve the authenticated user.
+auth.endpoints.user.property | | String | data | The property to pull the user data from the response.
 storage.driver | STORAGE_DRIVER | Number | redis | The driver to determine the type of storage system.
 redis.host | REDIS_HOST | String | 127.0.0.1 | The host for establishing the redis connection.
 redis.port | REDIS_PORT | Number | 6379 | The port for establishing the redis connection.

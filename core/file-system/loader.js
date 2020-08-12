@@ -34,10 +34,12 @@ class Loader {
       // Get file listings from this directory
       const files = listings.filter(file => file.isFile()).map(file => {
         const name = file.name.replace(/\.[^\/.]+$/, '');
+        const relativePath = path.replace(new RegExp('^[\/]+'), '')
+          .replace(new RegExp('[\/]+$'), '');
 
         return {
           name,
-          path: path || '/',
+          path: relativePath !== '' ? `${relativePath}/${name}` : `${relativePath}${name}`,
           fullPath: `${process.cwd()}${this.basePath}${path}/${name}`,
         };
       });

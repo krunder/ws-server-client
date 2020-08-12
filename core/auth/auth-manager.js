@@ -1,7 +1,7 @@
 const Client = require('../http/client');
 const dotProp = require('dot-prop');
 
-class Auth {
+class AuthManager {
   /**
    * Initialise the auth instance.
    *
@@ -84,4 +84,4 @@ class Auth {
   };
 };
 
-module.exports = Auth;
+module.exports = AuthManager;

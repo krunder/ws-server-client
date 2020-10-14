@@ -12,7 +12,7 @@ const defaultConfig = {
 
     endpoints: {
       user: {
-        url: '',
+        url: process.env.AUTH_URL || '',
         property: 'data',
       },
     },
@@ -33,8 +33,8 @@ const defaultConfig = {
   redis: {
     host: process.env.REDIS_HOST || '127.0.0.1',
     port: process.env.REDIS_PORT || 6379,
-    password: process.env.REDIS_PASSWORD,
-    path: process.env.REDIS_UNIX_PATH,
+    password: process.env.REDIS_PASSWORD || null,
+    path: process.env.REDIS_UNIX_PATH || null,
   },
 };
 

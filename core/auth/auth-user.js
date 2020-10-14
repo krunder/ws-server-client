@@ -1,12 +1,12 @@
-class Auth {
+class AuthUser {
   /**
-   * Initialise new auth instance.
+   * Initialise new instance.
    */
   constructor() {
     /**
      * The authenticated user.
      *
-     * @type {String|null}
+     * @type {Object|null}
      * @private
      */
     this._user = null;
@@ -62,8 +62,8 @@ class Auth {
    * @returns {Boolean}
    */
   isAuthenticated() {
-    return !!this._user;
+    return !!this.token && !!this._user;
   };
 };
 
-module.exports = Auth;
+module.exports = AuthUser;

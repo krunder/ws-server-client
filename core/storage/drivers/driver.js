@@ -1,8 +1,10 @@
+const Config = require('../../config/config');
+
 class Driver {
   /**
-   * Initialise the driver instance.
+   * Initialise new instance.
    *
-   * @param {Object} config
+   * @param {Config} config
    */
   constructor(config) {
     this.config = config;
@@ -10,7 +12,7 @@ class Driver {
   };
 
   /**
-   * Initialise any necessary dependencies etc.
+   * Initialise the driver.
    */
   init() {
     throw new Error('The init() method must be implemented on storage drivers.');
@@ -42,7 +44,7 @@ class Driver {
    * @returns {*}
    */
   getKeyPrefixed(key) {
-    return this.config.storage.prefix + key;
+    return this.config.get('storage.prefix') + key;
   };
 };
 

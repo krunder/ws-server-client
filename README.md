@@ -14,7 +14,7 @@ npm install ws-server-client
 Add the following to your package.json
 ```json
 "scripts": {
-  "start": "node ./node_modules/ws-server-client/server.js"
+  "start": "node ./node_modules/ws-server-client/start.js"
 },
 ```
 

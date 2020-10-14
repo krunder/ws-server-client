@@ -1,25 +1,62 @@
+const Config = require('../config/config');
+
 class Storage {
   /**
-   * Initialise the storage instance.
+   * Initialise new instance.
    *
-   * @param {Object} config
+   * @param {Config} config
    */
   constructor(config) {
     this.config = config;
-    this.driver = new (require(`./drivers/${this.config.storage.driver}`))(config);
+
+    /**
+     * The storage driver instance.
+     *
+     * @type {Driver}
+     * @private
+     */
+    this._driver = new (require(`./drivers/${this.config.get('storage.driver')}`))(this.config);
   };
 
   /**
-   * Get the configuration object.
+   * Set value in storage driver.
    *
-   * @returns {Object}
+   * @param {String} key
+   * @param {*} value
+   */
+  set(key, value) {
+    return this._driver.set(key, value);
+  };
+
+  /**
+   * Get value from storage driver.
+   *
+   * @param {String} key
+   */
+  get(key) {
+    return this._driver.get(key);
+  };
+
+  /**
+   * Get the configuration instance.
+   *
+   * @returns {Config}
    */
   getConfig() {
     return this.config;
   };
 
   /**
-   * Get the storage driver instance.
+   * Set driver instance.
+   *
+   * @param {Driver} driver
+   */
+  setDriver(driver) {
+    this._driver = driver;
+  };
+
+  /**
+   * Get driver instance.
    *
    * @return {Driver}
    */

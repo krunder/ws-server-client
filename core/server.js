@@ -1,20 +1,27 @@
 const express = require('express');
 const http = require('http');
 const io = require('socket.io');
-const dotenv = require('dotenv');
-const merge = require('deepmerge');
 
-const Storage = require('../core/storage/storage');
-const Loader = require('../core/file-system/loader');
-const Auth = require('../core/auth/auth');
-const AuthManager = require('../core/auth/auth-manager');
+const Config = require('./config/config');
+const Loader = require('./file-system/loader');
+const AuthManager = require('./auth/auth-manager');
+const Storage = require('./storage/storage');
 
 class Server {
   /**
    * Initialise the instance.
+   *
+   * @param {Config} config
    */
-  constructor() {
-    dotenv.config();
+  constructor(config) {
+    this.config = config;
+
+    /**
+     * The storage instance.
+     *
+     * @type {Storage|null}
+     */
+    this.storage = null;
 
     /**
      * The Express HTTP instance.
@@ -27,10 +34,10 @@ class Server {
     /**
      * The HTTP server instance.
      *
-     * @type {http|null}
+     * @type {http}
      * @private
      */
-    this._http = null;
+    this._http = http.createServer(this._express);
 
     /**
      * The Socket IO server instance.
@@ -39,20 +46,6 @@ class Server {
      * @private
      */
     this._io = null;
-
-    /**
-     * The auth manager instance.
-     *
-     * @type {AuthManager|null}
-     */
-    this.authManager = null;
-
-    /**
-     * The default server configuration.
-     *
-     * @type {Object}
-     */
-    this.config = require('../core/config/server');
 
     /**
      * The events available to receive payload to.
@@ -72,90 +65,86 @@ class Server {
   /**
    * Initialise events and channels.
    */
-  init() {
-    this.loadConfig();
-
-    this.authManager = new AuthManager(this.config);
-    this.storage = new Storage(this.config);
-  };
-
-  /**
-   * Start the WebSocket server.
-   */
-  async start() {
-    // Initialise data
-    this.init();
-
-    // Create HTTP server instance
-    this._http = http.createServer(this._express);
-
+  async init(callback) {
     // Create Socket.IO server instance
     this._io = io(this._http, {
       handlePreflightRequest: (req, res) => {
         res.writeHead(200, {
           'Access-Control-Allow-Headers': 'Authorization',
-          'Access-Control-Allow-Methods': this.config.cors.methods,
-          'Access-Control-Allow-Origin': this.config.cors.origin,
-          'Access-Control-Allow-Credentials': this.config.cors.credentials,
+          'Access-Control-Allow-Methods': this.config.get('cors.methods'),
+          'Access-Control-Allow-Origin': this.config.get('cors.origin'),
+          'Access-Control-Allow-Credentials': this.config.get('cors.credentials'),
         });
         res.end();
       },
     });
 
+
+    // Register authentication
     this.registerAuth();
 
     // Register namespaces and events
     await this.registerNamespaces();
     await this.registerEvents();
 
-    // Start the HTTP server
-    this._http.listen(this.config.app.port, () => {
-      console.info('Listening on port ' + this.config.app.port + '...');
-    });
+    callback();
+  };
 
-    return this._io;
+  /**
+   * Start the WebSocket server.
+   */
+  start() {
+    const port = this.config.get('app.port');
+
+    // Start the HTTP server
+    this._http.listen(port, () => {
+      console.info('Listening on port ' + port + '...');
+    });
   };
 
   /**
    * Register authentication.
    */
   registerAuth() {
-    console.log('Registering authentication...');
+    console.info('Registering authentication...');
 
     this._io.use((socket, next) => {
+      const authManager = new AuthManager(this.config);
+
       const token = socket.handshake.headers.authorization
         ? socket.handshake.headers.authorization.replace('Bearer ', '')
         : null;
 
-      const auth = new Auth();
-
       if (token) {
-        this.authManager.getUser(token).then((user) => {
-          auth.setUser(user);
-          auth.setToken(token);
-
-          socket.request.auth = auth;
-
+        authManager.fetchUserByToken(token, () => {
+          socket.request.auth = authManager.getAuthUser();
           return next();
-        }).catch((err) => {
-          if (!err.response || err.response.status !== 401) {
-            throw new Error(err);
-          }
-
-          socket.request.auth = auth;
         });
       } else {
-        socket.request.auth = auth;
-
+        socket.request.auth = authManager.getAuthUser();
         return next();
       }
     });
   };
 
   /**
+   * Register Socket.IO events.
+   */
+  async registerEvents() {
+    console.log('Registering events...');
+
+    this.events = await this.load('events');
+
+    // Initialise all events that have no namespace
+    this._io.on('connection', socket => {
+      Object.values(this.events)
+        .filter(event => !event.instance.namespace())
+        .forEach(event => this.handleEvent(event, socket));
+    });
+  };
+
+  /**
    * Register Socket.IO namespaces.
-   *
-   * @returns {Promise<void>}
    */
   async registerNamespaces() {
     console.log('Registering namespaces...');
@@ -179,37 +168,6 @@ class Server {
   };
 
   /**
-   * Register Socket.IO events.
-   *
-   * @returns {Promise<void>}
-   */
-  async registerEvents() {
-    console.log('Registering events...');
-
-    this.events = await this.load('events');
-
-    this._io.on('connection', socket => {
-      // Initialise all events that have no namespace
-      Object.values(this.events)
-        .filter(event => !event.instance.namespace())
-        .forEach(event => this.handleEvent(event, socket));
-    });
-  };
-
-  /**
-   * Load configuration values from application.
-   */
-  loadConfig() {
-    try {
-      const config = require(`${process.cwd()}/config/server.js`) || {};
-
-      this.config = merge.all([this.config, config]);
-    } catch (err) {
-      console.info('Custom configuration file could not be found. Reverting to default values.');
-    }
-  };
-
-  /**
    * Load data from application directory.
    *
    * @returns {Promise}
@@ -220,7 +178,9 @@ class Server {
     return new Promise((resolve) => {
       loader.fromDir('', (files) => {
         const data = files.reduce((prev, file) => {
-          const instance = new (require(file.fullPath))(this.config);
+          const instance = new (require(file.fullPath));
+          instance.setConfig(this.config);
+          instance.setStorage(this.storage);
 
           return {...prev, [instance.getName()]: { ...file, instance }};
         }, {});
@@ -238,12 +198,30 @@ class Server {
    */
   handleEvent(event, socket) {
     socket.on(event.path, (payload, callback) => {
-      if (!event.instance.authorize()) {
-        return callback({ error: 'unauthorized' });
+      if (event.instance.authorize(socket, payload)) {
+        return callback(event.instance.listen(socket, payload));
       }
 
-      return callback(event.instance.listen(socket, payload));
+      return callback({ error: 'unauthorized' });
     });
+  };
+
+  /**
+   * Set storage instance.
+   *
+   * @param {Storage} storage
+   */
+  setStorage(storage) {
+    this.storage = storage;
+  };
+
+  /**
+   * Get storage instance.
+   *
+   * @param {Storage} storage
+   */
+  getStorage(storage) {
+    return this.storage;
   };
 };
 

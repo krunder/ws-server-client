@@ -4,7 +4,16 @@ const { promisify } = require('util');
 
 class Redis extends Driver {
   init() {
-    this.client = redis.createClient(this.config.redis);
+    const config = this.config.get('redis');
+
+    if (config.password || config.path) {
+      this.client = redis.createClient(config);
+    } else {
+      this.client = redis.createClient({
+        host: config.host,
+        port: config.port,
+      });
+    }
   };
 
   set(key, value) {

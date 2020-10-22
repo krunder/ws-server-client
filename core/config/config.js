@@ -34,7 +34,9 @@ class Config {
 
       this._config = merge.all([this._config, config]);
     } catch (err) {
-      console.info('No custom configuration file found. Reverting to default values');
+      if (!err.code || err.code !== 'MODULE_NOT_FOUND') {
+        throw err;
+      }
     }
   };
 };

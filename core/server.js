@@ -6,6 +6,7 @@ const Config = require('./config/config');
 const Loader = require('./file-system/loader');
 const AuthManager = require('./auth/auth-manager');
 const Storage = require('./storage/storage');
+const Application = require('../lib/app');
 
 class Server {
   /**
@@ -22,6 +23,13 @@ class Server {
      * @type {Storage|null}
      */
     this.storage = null;
+
+    /**
+     * The application instance.
+     *
+     * @type {Application|null}
+     */
+    this.app = null;
 
     /**
      * The Express HTTP instance.
@@ -79,13 +87,12 @@ class Server {
       },
     });
 
-
     // Register authentication
     this.registerAuth();
 
     // Register namespaces and events
-    await this.registerNamespaces();
     await this.registerEvents();
+    await this.registerNamespaces();
 
     callback();
   };
@@ -131,7 +138,7 @@ class Server {
    * Register Socket.IO events.
    */
   async registerEvents() {
-    console.log('Registering events...');
+    console.info('Registering events...');
 
     this.events = await this.load('events');
 
@@ -147,19 +154,19 @@ class Server {
    * Register Socket.IO namespaces.
    */
   async registerNamespaces() {
-    console.log('Registering namespaces...');
+    console.info('Registering namespaces...');
 
     this.namespaces = await this.load('namespaces');
 
     // Initialise all events relating to namespaces
     Object.values(this.namespaces).forEach(namespace => {
       this._io.of(`/${namespace.path}`).on('connection', socket => {
-        if (namespace.instance.authorize(socket)){
+        if (namespace.instance.authorize(socket)) {
           Object.values(this.events)
             .filter(event => !!event.instance.namespace())
             .forEach(event => this.handleEvent(event, socket));
 
-          return namespace.instance.connect(socket);
+          return namespace.instance.connect(socket, { query: socket.handshake.query });
         }
 
         setTimeout(() => socket.disconnect(true));
@@ -204,6 +211,24 @@ class Server {
 
       return callback({ error: 'unauthorized' });
     });
+  };
+
+  /**
+   * Set application instance.
+   *
+   * @param {Application} app
+   */
+  setApp(app) {
+    this.app = app;
+  };
+
+  /**
+   * Get application instance.
+   *
+   * @returns {Application}
+   */
+  getApp() {
+    return this.app;
   };
 
   /**

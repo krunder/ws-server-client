@@ -1,7 +1,7 @@
 const WebSocketServer = {};
 
-WebSocketServer.Event = require('./lib/events/event');
-WebSocketServer.Namespace = require('./lib/namespaces/namespace');
-WebSocketServer.Server = require('./core/server');
+WebSocketServer.Event = require('./lib/event');
+WebSocketServer.Namespace = require('./lib/namespace');
+WebSocketServer.Application = require('./lib/app');
 
 module.exports = WebSocketServer;

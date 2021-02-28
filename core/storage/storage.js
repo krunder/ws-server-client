@@ -23,9 +23,20 @@ class Storage {
    *
    * @param {String} key
    * @param {*} value
+   * @param {Number} seconds
    */
-  set(key, value) {
-    return this._driver.set(key, value);
+  set(key, value, seconds = 0) {
+    return this._driver.set(key, value, seconds);
+  };
+
+  /**
+   * Forget key in storage driver.
+   *
+   * @param {String} key
+   * @returns {*}
+   */
+  forget(key) {
+    return this._driver.forget(key);
   };
 
   /**

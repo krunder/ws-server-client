@@ -7,6 +7,10 @@ const defaultConfig = {
     key: process.env.APP_KEY || 'changeme',
   },
 
+  api: {
+    url: process.env.API_URL || '',
+  },
+
   auth: {
     driver: process.env.AUTH_DRIVER,
 

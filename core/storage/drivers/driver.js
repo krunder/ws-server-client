@@ -23,9 +23,19 @@ class Driver {
    *
    * @param {String} key
    * @param value
+   * @param {Number} seconds
    */
-  set(key, value) {
+  set(key, value, seconds) {
     throw new Error('The set() method must be implemented on storage drivers.');
+  };
+
+  /**
+   * Forget key in storage system.
+   *
+   * @param {String} key
+   */
+  forget(key) {
+    throw new Error('The forget() method must be implemented on storage drivers.');
   };
 
   /**

@@ -6,6 +6,7 @@ const Config = require('./config/config');
 const Loader = require('./file-system/loader');
 const AuthManager = require('./auth/auth-manager');
 const Storage = require('./storage/storage');
+const Client = require('./axios/client');
 const Application = require('../lib/app');
 
 class Server {
@@ -23,6 +24,13 @@ class Server {
      * @type {Storage|null}
      */
     this.storage = null;
+
+    /**
+     * The HTTP client instance.
+     *
+     * @type {Client|null}
+     */
+    this.http = null;
 
     /**
      * The application instance.
@@ -45,7 +53,7 @@ class Server {
      * @type {http}
      * @private
      */
-    this._http = http.createServer(this._express);
+    this._httpServer = http.createServer(this._express);
 
     /**
      * The Socket IO server instance.
@@ -75,7 +83,7 @@ class Server {
    */
   async init(callback) {
     // Create Socket.IO server instance
-    this._io = io(this._http, {
+    this._io = io(this._httpServer, {
       handlePreflightRequest: (req, res) => {
         res.writeHead(200, {
           'Access-Control-Allow-Headers': 'Authorization',
@@ -103,8 +111,7 @@ class Server {
   start() {
     const port = this.config.get('app.port');
 
-    // Start the HTTP server
-    this._http.listen(port, () => {
+    this._httpServer.listen(port, () => {
       console.info('Listening on port ' + port + '...');
     });
   };
@@ -144,9 +151,13 @@ class Server {
 
     // Initialise all events that have no namespace
     this._io.on('connection', socket => {
+      this.app.onConnect(socket, { query: socket.handshake.query });
+
       Object.values(this.events)
         .filter(event => !event.instance.namespace())
         .forEach(event => this.handleEvent(event, socket));
+
+      socket.on('disconnect', () => this.app.onDisconnect(socket));
     });
   };
 
@@ -162,9 +173,16 @@ class Server {
     Object.values(this.namespaces).forEach(namespace => {
       this._io.of(`/${namespace.path}`).on('connection', socket => {
         if (namespace.instance.authorize(socket)) {
+          this.app.onConnect(socket, { query: socket.handshake.query });
+
           Object.values(this.events)
-            .filter(event => !!event.instance.namespace())
+            .filter(event => event.instance.namespace() === namespace.path)
             .forEach(event => this.handleEvent(event, socket));
+
+          socket.on('disconnect', () => {
+            this.app.onDisconnect(socket);
+            namespace.instance.disconnect(socket);
+          });
 
           return namespace.instance.connect(socket, { query: socket.handshake.query });
         }
@@ -188,8 +206,10 @@ class Server {
           const instance = new (require(file.fullPath));
           instance.setConfig(this.config);
           instance.setStorage(this.storage);
+          instance.setHttp(this.http);
+          instance.setApp(this.app);
 
-          return {...prev, [instance.getName()]: { ...file, instance }};
+          return {...prev, [file.path]: { ...file, instance }};
         }, {});
 
         resolve(data);
@@ -206,10 +226,12 @@ class Server {
   handleEvent(event, socket) {
     socket.on(event.path, (payload, callback) => {
       if (event.instance.authorize(socket, payload)) {
-        return callback(event.instance.listen(socket, payload));
+        const result = event.instance.listen(socket, payload);
+
+        return result instanceof Promise ? result.then(callback) : callback(result);
       }
 
-      return callback({ error: 'unauthorized' });
+      return callback({ error: 'Unauthorized' });
     });
   };
 
@@ -232,6 +254,15 @@ class Server {
   };
 
   /**
+   * Get Socket.IO server instance.
+   *
+   * @returns {io|null}
+   */
+  getIO() {
+    return this._io;
+  };
+
+  /**
    * Set storage instance.
    *
    * @param {Storage} storage
@@ -248,6 +279,24 @@ class Server {
   getStorage(storage) {
     return this.storage;
   };
-};
+
+  /**
+   * Set HTTP client instance.
+   *
+   * @param {Client} http
+   */
+  setHttp(http) {
+    this.http = http;
+  };
+
+  /**
+   * Get HTTP client instance.
+   *
+   * @returns {Client|null}
+   */
+  getHttp() {
+    return this.http;
+  };
+}
 
 module.exports = Server;

@@ -16,15 +16,25 @@ class Redis extends Driver {
     }
   };
 
-  set(key, value) {
+  set(key, value, seconds) {
     const async = promisify(this.client.set).bind(this.client);
+
+    if (seconds > 0) {
+      return async(this.getKeyPrefixed(key), value, 'EX', seconds);
+    }
+
     return async(this.getKeyPrefixed(key), value);
+  };
+
+  forget(key) {
+    const async = promisify(this.client.del).bind(this.client);
+    return async(this.getKeyPrefixed(key));
   };
 
   get(key) {
     const async = promisify(this.client.get).bind(this.client);
     return async(this.getKeyPrefixed(key));
   };
-};
+}
 
 module.exports = Redis;

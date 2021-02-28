@@ -43,11 +43,21 @@ class Loader {
           fullPath: `${process.cwd()}${this.basePath}${path}/${name}`,
         };
       });
+
       this.files = [...this.files, ...files];
 
       // Get file listings from all sub-directories
       const directories = listings.filter(file => file.isDirectory());
-      directories.forEach(dir => this.fromDir(`${path}/${dir.name}`, callback));
+      directories.forEach((dir) =>
+        this.fromDir(`${path}/${dir.name}`, () => {
+          const index = directories.findIndex(subDir => subDir.name === dir.name);
+          directories.splice(index, 1);
+
+          if (directories.length === 0) {
+            callback(this.files);
+          }
+        })
+      );
 
       // Run callback with list of files if no more sub-directories
       if (directories.length === 0) {

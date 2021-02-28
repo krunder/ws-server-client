@@ -1,21 +1,33 @@
 const axios = require('axios');
 
 class Client {
-  constructor() {
+  constructor(config) {
     this._client = axios.create({
       timeout: 30000, // 30 seconds
+      baseURL: config && config.get('api.url'),
     });
+
+    /**
+     * The extra headers to be applied on each request.
+     *
+     * @type {Object}
+     * @private
+     */
+    this._headers = {};
   };
 
   /**
    * Send GET request.
    *
    * @param {String} uri
-   * @param {Object} config
+   * @param {Object} options
    * @returns {Promise}
    */
-  get(uri, config) {
-    return this._client.get(uri, config);
+  get(uri, options = {}) {
+    return this._client.get(uri, {
+      headers: this._headers,
+      ...options,
+    });
   };
 
   /**
@@ -23,11 +35,14 @@ class Client {
    *
    * @param {String} uri
    * @param {Object} data
-   * @param {Object} config
+   * @param {Object} options
    * @returns {Promise}
    */
-  post(uri, data, config) {
-    return this._client.post(uri, data, config);
+  post(uri, data, options = {}) {
+    return this._client.post(uri, data, {
+      headers: this._headers,
+      ...options,
+    });
   };
 
   /**
@@ -35,11 +50,14 @@ class Client {
    *
    * @param {String} uri
    * @param {Object} data
-   * @param {Object} config
+   * @param {Object} options
    * @returns {Promise}
    */
-  patch(uri, data, config) {
-    return this._client.patch(uri, data, config);
+  patch(uri, data, options = {}) {
+    return this._client.patch(uri, data, {
+      headers: this._headers,
+      ...options,
+    });
   };
 
   /**
@@ -47,23 +65,38 @@ class Client {
    *
    * @param {String} uri
    * @param {Object} data
-   * @param {Object} config
+   * @param {Object} options
    * @returns {Promise}
    */
-  put(uri, data, config) {
-    return this._client.put(uri, data, config);
+  put(uri, data, options = {}) {
+    return this._client.put(uri, data, {
+      headers: this._headers,
+      ...options,
+    });
   };
 
   /**
    * Send DELETE request.
    *
    * @param {String} uri
-   * @param {Object} config
+   * @param {Object} options
    * @returns {Promise}
    */
-  delete(uri, config) {
-    return this._client.delete(uri, config);
+  delete(uri, options = {}) {
+    return this._client.delete(uri, {
+      headers: this._headers,
+      ...options,
+    });
   };
-};
+
+  /**
+   * Add extra headers for each request.
+   *
+   * @param {Object} headers
+   */
+  setHeaders(headers) {
+    this._headers = headers;
+  };
+}
 
 module.exports = Client;

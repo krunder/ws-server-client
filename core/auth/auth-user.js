@@ -62,7 +62,7 @@ class AuthUser {
    * @returns {Boolean}
    */
   isAuthenticated() {
-    return !!this.token && !!this._user;
+    return !!this._token && !!this._user;
   };
 };
 

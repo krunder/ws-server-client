@@ -31,22 +31,35 @@ class Loader {
    */
   fromDir(path, callback, recursive = true) {
     fs.readdir(`${process.cwd()}${this.basePath}${path}`, { withFileTypes: true }, (err, listings) => {
+      // Get file listings from this directory
       const files = listings.filter(file => file.isFile()).map(file => {
         const name = file.name.replace(/\.[^\/.]+$/, '');
+        const relativePath = path.replace(new RegExp('^[\/]+'), '')
+          .replace(new RegExp('[\/]+$'), '');
 
         return {
           name,
-          path: path || '/',
+          path: relativePath !== '' ? `${relativePath}/${name}` : `${relativePath}${name}`,
           fullPath: `${process.cwd()}${this.basePath}${path}/${name}`,
         };
       });
+
       this.files = [...this.files, ...files];
 
       // Get file listings from all sub-directories
       const directories = listings.filter(file => file.isDirectory());
-      directories.forEach(dir => this.fromDir(`${path}/${dir.name}`, callback));
+      directories.forEach((dir) =>
+        this.fromDir(`${path}/${dir.name}`, () => {
+          const index = directories.findIndex(subDir => subDir.name === dir.name);
+          directories.splice(index, 1);
 
-      // If there are no more sub-directories, return new successful promise with list of files
+          if (directories.length === 0) {
+            callback(this.files);
+          }
+        })
+      );
+
+      // Run callback with list of files if no more sub-directories
       if (directories.length === 0) {
         callback(this.files);
       }

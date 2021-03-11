@@ -1,8 +1,10 @@
+const Config = require('../../config/config');
+
 class Driver {
   /**
-   * Initialise the driver instance.
+   * Initialise new instance.
    *
-   * @param {Object} config
+   * @param {Config} config
    */
   constructor(config) {
     this.config = config;
@@ -10,10 +12,10 @@ class Driver {
   };
 
   /**
-   * Setup any necessary dependencies etc.
+   * Initialise the driver.
    */
-  setup() {
-    throw new Error('The setup() method must be implemented on storage drivers.');
+  init() {
+    throw new Error('The init() method must be implemented on storage drivers.');
   };
 
   /**
@@ -21,9 +23,19 @@ class Driver {
    *
    * @param {String} key
    * @param value
+   * @param {Number} seconds
    */
-  set(key, value) {
+  set(key, value, seconds) {
     throw new Error('The set() method must be implemented on storage drivers.');
+  };
+
+  /**
+   * Forget key in storage system.
+   *
+   * @param {String} key
+   */
+  forget(key) {
+    throw new Error('The forget() method must be implemented on storage drivers.');
   };
 
   /**
@@ -42,7 +54,7 @@ class Driver {
    * @returns {*}
    */
   getKeyPrefixed(key) {
-    return this.config.storage.prefix + key;
+    return this.config.get('storage.prefix') + key;
   };
 };
 

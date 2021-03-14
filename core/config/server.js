@@ -10,7 +10,7 @@ const defaultConfig = {
   },
 
   client: {
-    url: process.env.CLIENT_URL || 'http://localhost:21000',
+    url: process.env.CLIENT_URL || 'http://localhost',
   },
 
   api: {

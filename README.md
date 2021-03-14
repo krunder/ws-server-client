@@ -104,7 +104,7 @@ this.storage.get('example-key').then((value) => ...).catch(...);
 
 The config instance can be used to get configuration values. The key specified uses dot-notation.
 ```js
-this.storage.get('app.env');
+this.config.get('app.env');
 ```
 
 ### Send to server

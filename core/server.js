@@ -219,7 +219,7 @@ class Server {
     // Initialise all events relating to namespaces
     Object.values(this.namespaces).forEach(namespace => {
       this._io.of(`/${namespace.path}`).on('connection', socket => {
-        if (namespace.instance.authorize(socket)) {
+        if (namespace.instance.authorize(socket, { query: socket.handshake.query })) {
           this.app.onConnect(socket, { query: socket.handshake.query });
 
           Object.values(this.events)

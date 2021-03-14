@@ -31,6 +31,8 @@ class Loader {
    */
   fromDir(path, callback, recursive = true) {
     fs.readdir(`${process.cwd()}${this.basePath}${path}`, { withFileTypes: true }, (err, listings) => {
+      listings = listings || [];
+
       // Get file listings from this directory
       const files = listings.filter(file => file.isFile()).map(file => {
         const name = file.name.replace(/\.[^\/.]+$/, '');

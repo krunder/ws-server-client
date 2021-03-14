@@ -2,18 +2,22 @@ const environment = process.env.APP_ENV || 'local';
 
 const defaultConfig = {
   app: {
-    environment,
+    env: environment,
     port: process.env.APP_PORT || 21000,
     key: process.env.APP_KEY || 'changeme',
+    host: process.env.APP_HOST || '127.0.0.1',
+    scheme: process.env.APP_SCHEME || 'http',
+  },
+
+  client: {
+    url: process.env.CLIENT_URL || 'http://localhost',
   },
 
   api: {
-    url: process.env.API_URL || '',
+    url: process.env.API_URL || 'http://localhost',
   },
 
   auth: {
-    driver: process.env.AUTH_DRIVER,
-
     endpoints: {
       user: {
         url: process.env.AUTH_URL || '',
@@ -32,6 +36,11 @@ const defaultConfig = {
   storage: {
     driver: process.env.STORAGE_DRIVER || 'redis',
     prefix: `${environment}_`,
+  },
+
+  session: {
+    driver: process.env.SESSION_DRIVER || 'memory',
+    expiry: 60, // Minutes
   },
 
   redis: {

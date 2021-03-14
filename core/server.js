@@ -1,6 +1,10 @@
 const express = require('express');
+const expressSession = require('express-session');
 const http = require('http');
 const io = require('socket.io');
+const cors = require('cors');
+const redis = require('redis');
+const RedisStore = require('connect-redis')(expressSession);
 
 const Config = require('./config/config');
 const Loader = require('./file-system/loader');
@@ -82,20 +86,17 @@ class Server {
    * Initialise events and channels.
    */
   async init(callback) {
-    // Create Socket.IO server instance
-    this._io = io(this._httpServer, {
-      handlePreflightRequest: (req, res) => {
-        res.writeHead(200, {
-          'Access-Control-Allow-Headers': 'Authorization',
-          'Access-Control-Allow-Methods': this.config.get('cors.methods'),
-          'Access-Control-Allow-Origin': this.config.get('cors.origin'),
-          'Access-Control-Allow-Credentials': this.config.get('cors.credentials'),
-        });
-        res.end();
-      },
-    });
+    this._express.use(cors({
+      origin: this.config.get('cors.origin'),
+      methods: this.config.get('cors.methods'),
+      credentials: this.config.get('cors.credentials'),
+    }));
 
-    // Register authentication
+    // Create Socket.IO server instance
+    this._io = io(this._httpServer);
+
+    // Register authentication & session
+    this.registerSession();
     this.registerAuth();
 
     // Register namespaces and events
@@ -117,6 +118,52 @@ class Server {
   };
 
   /**
+   * Register session.
+   */
+  registerSession() {
+    console.info('Registering session...');
+
+    const driver = this.config.get('session.driver');
+    let store;
+
+    if (driver === 'redis') {
+      const redisConfig = this.config.get('redis');
+      const client = !redisConfig.password && !redisConfig.path
+        ? redis.createClient({ host: redisConfig.host, port: redisConfig.port })
+        : redis.createClient(redisConfig);
+
+      store = new RedisStore({ client });
+    } else {
+      store = expressSession.MemoryStore();
+    }
+
+    const clientUrl = new URL(this.config.get('client.url'));
+
+    this._express.set('trust proxy', 1);
+
+    const middleware = expressSession({
+      secret: this.config.get('app.key'),
+      store,
+      proxy: true,
+      resave: false,
+      saveUninitialized: true,
+      cookie: {
+        sameSite: this.config.get('app.host') === clientUrl.hostname ? 'lax' : 'none',
+        secure: this.config.get('app.scheme') === 'https',
+        maxAge: this.config.get('session.expiry') * 60 * 1000,
+      },
+    });
+
+    this._express.use(middleware);
+
+    this._express.post('/authenticate', (req, res) => {
+      res.json({ sessionId: req.session.id });
+    })
+
+    this._io.use((socket, next) => middleware(socket.request, socket.request.res, next));
+  };
+
+  /**
    * Register authentication.
    */
   registerAuth() {
@@ -125,8 +172,8 @@ class Server {
     this._io.use((socket, next) => {
       const authManager = new AuthManager(this.config);
 
-      const token = socket.handshake.headers.authorization
-        ? socket.handshake.headers.authorization.replace('Bearer ', '')
+      const token = socket.handshake.auth.token
+        ? socket.handshake.auth.token.replace('Bearer ', '')
         : null;
 
       if (token) {

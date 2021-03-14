@@ -5,6 +5,12 @@ const defaultConfig = {
     environment,
     port: process.env.APP_PORT || 21000,
     key: process.env.APP_KEY || 'changeme',
+    host: process.env.APP_HOST || '127.0.0.1',
+    scheme: process.env.APP_SCHEME || 'http',
+  },
+
+  client: {
+    url: process.env.CLIENT_URL || 'http://localhost:21000',
   },
 
   api: {
@@ -32,6 +38,11 @@ const defaultConfig = {
   storage: {
     driver: process.env.STORAGE_DRIVER || 'redis',
     prefix: `${environment}_`,
+  },
+
+  session: {
+    driver: process.env.SESSION_DRIVER || 'memory',
+    expiry: 60, // Minutes
   },
 
   redis: {

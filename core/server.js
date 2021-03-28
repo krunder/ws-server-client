@@ -156,9 +156,9 @@ class Server {
 
     this._express.use(middleware);
 
-    this._express.post('/authenticate', (req, res) => {
+    this._express.post(`/${this.config.get('app.api.path')}/authenticate`, (req, res) => {
       res.json({ sessionId: req.session.id });
-    })
+    });
 
     this._io.use((socket, next) => middleware(socket.request, socket.request.res, next));
   };
@@ -272,6 +272,10 @@ class Server {
    */
   handleEvent(event, socket) {
     socket.on(event.path, (payload, callback) => {
+      if (typeof callback !== 'function') {
+        callback = () => {};
+      }
+
       if (event.instance.authorize(socket, payload)) {
         const result = event.instance.listen(socket, payload);
 

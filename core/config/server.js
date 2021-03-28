@@ -7,6 +7,9 @@ const defaultConfig = {
     key: process.env.APP_KEY || 'changeme',
     host: process.env.APP_HOST || '127.0.0.1',
     scheme: process.env.APP_SCHEME || 'http',
+    api: {
+      path: (process.env.APP_API_PATH || '/').replace(/(\/)$/g, ''),
+    },
   },
 
   client: {
